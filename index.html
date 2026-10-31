@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeremHub - Oyun Dünyası</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#090914;color:white;
+ font-family:Arial,sans-serif;
+}
+header{
+ padding:25px 15px;text-align:center;
+ background:linear-gradient(120deg,#251052,#101c46);
+ border-bottom:2px solid #854cff;
+}
+.logo{font-size:36px;font-weight:900;color:#b58aff}
+header p{color:#c8c3e0}
+nav{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:15px}
+button{
+ background:#713bea;color:white;border:0;
+ padding:12px 18px;border-radius:10px;
+ cursor:pointer;font-weight:bold;
+}
+button:hover{background:#9565ff}
+main{max-width:950px;margin:auto;padding:18px}
+input{
+ width:100%;padding:14px;border-radius:12px;
+ border:1px solid #7545c8;background:#17172a;
+ color:white;font-size:16px;margin-bottom:20px;
+}
+.games{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:15px;
+}
+.card{
+ background:#17172a;padding:20px;border-radius:16px;
+ border:1px solid #39305c;text-align:center;
+}
+.card .emoji{font-size:55px}
+.card h2{color:#c6a7ff}
+#gameArea{
+ display:none;margin-top:20px;padding:22px;
+ background:#17172a;border-radius:16px;text-align:center;
+}
+#gameArea button{margin:5px}
+#gameArea p{line-height:1.7}
+#gameArea canvas{max-width:100%;background:#080812;border-radius:10px}
+footer{text-align:center;padding:25px;color:#aaa}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">⚡ KEREMHUB</div>
+ <p>Oyun dünyasına hoş geldin!</p>
+ <h3>🎮 Eğlence burada başlıyor!</h3>
+</header>
+
+<nav>
+ <button onclick="showHome()">🏠 Ana Sayfa</button>
+ <button onclick="showGames()">🎮 Oyunlar</button>
+ <button onclick="alert('Toplam puanın: '+score)">🏆 Puanım</button>
+</nav>
+
+<main>
+ <h2>Oyunları Keşfet 🔥</h2>
+ <input id="search" placeholder="Oyun ara..." oninput="filterGames()">
+
+ <div class="games" id="games">
+  <div class="card" data-name="tıklama yarışı">
+   <div class="emoji">⚡</div>
+   <h2>Tıklama Yarışı</h2>
+   <p>10 saniyede kaç kez tıklayabilirsin?</p>
+   <button onclick="clickGame()">OYNA</button>
+  </div>
+
+  <div class="card" data-name="sayı tahmin">
+   <div class="emoji">🔢</div>
+   <h2>Sayı Tahmini</h2>
+   <p>Gizli sayıyı bulabilecek misin?</p>
+   <button onclick="guessGame()">OYNA</button>
+  </div>
+
+  <div class="card" data-name="hafıza oyunu">
+   <div class="emoji">🧠</div>
+   <h2>Hafıza Oyunu</h2>
+   <p>Renkleri eşleştir!</p>
+   <button onclick="memoryGame()">OYNA</button>
+  </div>
+ </div>
+
+ <section id="gameArea"></section>
+</main>
+
+<footer>© 2026 KeremHub | Tüm hakları saklıdır ⚡</footer>
+
+<script>
+let score=0;
+const area=document.getElementById("gameArea");
+
+function showHome(){
+ area.style.display="none";
+ document.getElementById("games").style.display="grid";
+}
+function showGames(){showHome()}
+function filterGames(){
+ let q=document.getElementById("search").value.toLowerCase();
+ document.querySelectorAll(".card").forEach(card=>{
+  card.style.display=card.dataset.name.includes(q)?"block":"none";
+ });
+}
+function openGame(title,html){
+ document.getElementById("games").style.display="none";
+ area.style.display="block";
+ area.innerHTML="<h2>"+title+"</h2>"+html+
+ '<p><button onclick="showHome()">⬅ Ana menü</button></p>';
+ area.scrollIntoView({behavior:"smooth"});
+}
+
+function clickGame(){
+ openGame("⚡ Tıklama Yarışı",`
+ <h1 id="count">0</h1>
+ <p id="timer">Başlamak için tıkla!</p>
+ <button id="tap" onclick="tapClick()">TIKLA!</button>`);
+ let count=0,started=false,ended=false;
+ window.tapClick=function(){
+  if(ended)return;
+  if(!started){
+   started=true;
+   let left=10;
+   document.getElementById("timer").textContent="Kalan: "+left;
+   let interval=setInterval(()=>{
+    left--;
+    if(document.getElementById("timer"))
+     document.getElementById("timer").textContent="Kalan: "+left;
+    if(left<=0){
+     clearInterval(interval);ended=true;
+     score+=count;
+     if(document.getElementById("tap"))
+      document.getElementById("tap").disabled=true;
+     document.getElementById("timer").textContent=
+      "Bitti! "+count+" puan kazandın!";
+    }
+   },1000);
+  }
+  count++;
+  document.getElementById("count").textContent=count;
+ };
+}
+
+function guessGame(){
+ let secret=Math.floor(Math.random()*20)+1;
+ openGame("🔢 Sayı Tahmini",`
+ <p>1 ile 20 arasında bir sayı tuttum!</p>
+ <input id="guess" type="number" min="1" max="20" placeholder="Tahminini yaz">
+ <button onclick="checkGuess()">TAHMİN ET</button>
+ <p id="result"></p>`);
+ window.checkGuess=function(){
+  let n=Number(document.getElementById("guess").value);
+  let r=document.getElementById("result");
+  if(n===secret){r.textContent="🎉 Bildin! +10 puan";score+=10}
+  else if(n<secret)r.textContent="Daha büyük bir sayı dene!";
+  else r.textContent="Daha küçük bir sayı dene!";
+ };
+}
+
+function memoryGame(){
+ let symbols=["🍎","🚀","🐱","⚽","🍎","🚀","🐱","⚽"];
+ symbols.sort(()=>Math.random()-.5);
+ let chosen=[],matched=0;
+ openGame("🧠 Hafıza Oyunu",`
+ <p>Aynı emojileri eşleştir!</p>
+ <div id="memory" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+ <p id="memoryStatus">Eşleşen: 0 / 4</p>`);
+ let board=document.getElementById("memory");
+ symbols.forEach((symbol,i)=>{
+  let b=document.createElement("button");
+  b.textContent="❔";b.style.fontSize="25px";
+  b.style.padding="18px 5px";
+  b.onclick=()=>{
+   if(b.disabled||chosen.length===2)return;
+   b.textContent=symbol;chosen.push({b,symbol});
+   if(chosen.length===2){
+    if(chosen[0].symbol===chosen[1].symbol){
+     chosen.forEach(x=>x.b.disabled=true);
+     matched++;score+=5;
+     document.getElementById("memoryStatus").textContent=
+      "Eşleşen: "+matched+" / 4";
+     chosen=[];
+     if(matched===4)document.getElementById("memoryStatus").textContent=
+      "🎉 Kazandın! +20 puan";
+    }else{
+     let pair=chosen;chosen=[];
+     setTimeout(()=>pair.forEach(x=>{
+      if(x.b.isConnected)x.b.textContent="❔";
+     }),700);
+    }
+   }
+  };
+  board.appendChild(b);
+ });
+}
+</script>
+</body>
+</html>
